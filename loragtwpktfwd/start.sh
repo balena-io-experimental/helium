@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# Reset RAK2245 PIN
-SX1301_RESET_BCM_PIN=17
-echo "$SX1301_RESET_BCM_PIN"  > /sys/class/gpio/export
-echo "out" > /sys/class/gpio/gpio$SX1301_RESET_BCM_PIN/direction
-echo "0"   > /sys/class/gpio/gpio$SX1301_RESET_BCM_PIN/value
-sleep 0.1
-echo "1"   > /sys/class/gpio/gpio$SX1301_RESET_BCM_PIN/value
-sleep 0.1
-echo "0"   > /sys/class/gpio/gpio$SX1301_RESET_BCM_PIN/value
-sleep 0.1
-echo "$SX1301_RESET_BCM_PIN" > /sys/class/gpio/unexport
-sleep 0.2
-cd /build/packet_forwarder/lora_pkt_fwd
-./lora_pkt_fwd
+if [ -z ${MODEL} ] ;
+ then
+    echo -e "\033[91mWARNING: MODEL variable not set.\n Set the model of the gateway you are using."
+    balena-idle
+ else
+    echo "Using MODEL: $MODEL"
+    if [ $MODEL = "RAK2245" ];then
+        ./start_rak2245.sh
+
+    fi
+    if [ $MODEL = "RAK2287" ];then
+        ./start_rak2287.sh
+    fi
+fi 

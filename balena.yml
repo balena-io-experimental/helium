@@ -1,0 +1,7 @@
+applicationEnvironmentVariables:
+    - LORA_REGION: EU868
+    - LORA_UDP: 1680
+    - SPI_SPEED: 200000
+    - PIN_RESET: 11
+    - MINER_URL: miner-helium
+    - MODEL: RAK2245
