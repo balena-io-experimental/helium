@@ -5,6 +5,13 @@ services:
     restart: always
     build:
       context: loragtwpktfwd
+      args:
+        - LORA_REGION=EU868
+        - LORA_UDP=1680 #default "1680"
+        - SPI_SPEED=2000000 #default 2000000
+        - PIN_RESET=11
+        - MINER_URL=helium-miner #default "helium-miner"
+        - MODEL=RAK2245
     privileged: true
 
   helium-miner:

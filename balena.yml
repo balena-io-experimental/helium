@@ -1,3 +1,4 @@
+
 applicationEnvironmentVariables:
     - LORA_REGION: EU868
     - LORA_UDP: 1680

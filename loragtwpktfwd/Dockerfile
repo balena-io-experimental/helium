@@ -1,4 +1,4 @@
-FROM raspbian/stretch as builder
+FROM balenalib/%%BALENA_MACHINE_NAME%%-debian as builder
 
 ARG LORA_REGION
 ARG LORA_UDP
@@ -14,19 +14,28 @@ RUN echo "Choosen PIN reset =>" $PIN_RESET
 RUN echo "Choosen URL miner =>" $MINER_URL
 RUN echo "Choosen RAK MODEL =>" $MODEL
 
-RUN apt-get update && apt-get install -y git build-essential wget
+RUN apt-get update && install_packages git build-essential wget
 
 
 WORKDIR /build
 
-RUN git clone https://github.com/Lora-net/lora_gateway.git
+RUN if [ -z "$MODEL" ] ; then echo MODEL has not been set, resuming... ; fi
+RUN if [ "$MODEL" = "RAK2245" ] ; then  git clone https://github.com/Lora-net/lora_gateway.git ; else git clone https://github.com/PastaGringo/sx1302_hal.git ;  fi
 
-COPY loragw_spi.native.c /build/lora_gateway/libloragw/src/
+
+RUN if [ "$MODEL" = "RAK2287" ] ; then cd sx1302_hal; fi
+RUN if [ "$MODEL" = "RAK2287" ] ; then make clean all; fi
+RUN if [ "$MODEL" = "RAK2287" ] ; then make install; fi
+RUN if [ "$MODEL" = "RAK2287" ] ; then make install_conf; fi
+RUN if [ "$MODEL" = "RAK2287" ] ; then cd ..; fi
+
+RUN if [ "$MODEL" = "RAK2245" ] ; then cc loragw_spi.native.c /build/lora_gateway/libloragw/src/; fi
 
 RUN if [ -z "$SPI_SPEED" ] ; then echo SPI_SPEED has not been set, resuming... ; else sed -i -e "s/2000000/$SPI_SPEED/g" /build/lora_gateway/libloragw/src/loragw_spi.native.c ; fi
 
-RUN git clone https://github.com/Lora-net/packet_forwarder.git
-COPY lora_pkt_fwd.c /build/packet_forwarder/lora_pkt_fwd/src
+RUN if [ "$MODEL" = "RAK2245" ] ; then git clone https://github.com/Lora-net/packet_forwarder.git; fi
+RUN if [ "$MODEL" = "RAK2245" ] ; then cc lora_pkt_fwd.c /build/packet_forwarder/lora_pkt_fwd/src; fi
+
 
 COPY global_conf_US.json .
 COPY global_conf_EU.json .
@@ -39,7 +48,7 @@ RUN rm -rf /build/packet_forwarder/lora_pkt_fwd/global_conf.json && cp global_co
 
 WORKDIR /build/packet_forwarder
 
-RUN ./compile.sh
+RUN if [ "$MODEL" = "RAK2245" ] ; then ./compile.sh; fi
 
 COPY start.sh .
 
@@ -48,3 +57,19 @@ RUN if [ -z "$PIN_RESET" ] ; then echo PIN_RESET has not been set, resuming... ;
 RUN chmod +x start.sh
 
 ENTRYPOINT ["./start.sh"]
+
+
+
+
+
+#WORKDIR /home/pi/
+#RUN git clone https://github.com/PastaGringo/sx1302_hal.git
+#WORKDIR /home/pi/sx1302_hal
+#RUN make clean all
+#RUN make install
+#RUN make install_conf
+#WORKDIR /home/pi/sx1302_hal/bin
+#COPY start.sh .
+#RUN chmod +x reset_lgw.sh start.sh
+#RUN sed -i -e "s/localhost/helium-miner/g" global_conf.json.sx1250.US915
+#ENTRYPOINT ["./start.sh"]
